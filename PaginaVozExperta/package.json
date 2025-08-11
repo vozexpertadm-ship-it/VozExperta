@@ -4,7 +4,9 @@
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "start": "node server.js",
+    "build": "echo \"no build\"",
+    "migrate:sql": "psql \"$DATABASE_URL\" -f base_vozexperta.sql"
   },
   "keywords": [],
   "author": "",
@@ -17,5 +19,8 @@
     "nodemailer": "^7.0.5",
     "pg": "^8.13.1"
   },
-  "description": ""
+  "description": "",
+  "engines": {
+    "node": ">=18"
+  }
 }
