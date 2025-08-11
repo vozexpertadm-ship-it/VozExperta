@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar Sesión</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="login-container">
+        <h2>Iniciar Sesión</h2>
+        <form id="login-form">
+            <label for="correo">Usuario:</label>
+            <input type="email" id="correo" name="correo" required><br><br>
+    
+            <label for="contrasena">Contraseña:</label>
+            <input type="password" id="contrasena" name="contrasena" required><br><br>
+    
+            <button type="submit">Iniciar sesión</button>
+           <!-- <p class="register-link">¿No tienes una cuenta? <a href="registro.html">Regístrate aquí</a></p>-->
+            <p class="register-link">
+                ¿No tienes una cuenta? <a href="registro.html">Regístrate aquí</a><br>
+                <a href="restablecer.html">¿Olvidaste tu contraseña?</a>
+            </p>
+        </form>
+    </div>
+    <!--<script src="app.js"></script>-->
+    <script>
+        document.getElementById('login-form').addEventListener('submit', function(event) {
+            event.preventDefault();  // Prevenir el comportamiento predeterminado del formulario
+
+            const correo = document.getElementById('correo').value;
+            const contrasena = document.getElementById('contrasena').value;
+
+            // Enviar los datos al servidor con fetch
+                fetch('/verificar-login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ correo, contrasena })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.exito) {
+                        localStorage.setItem('id_tipo', data.id_tipo);
+                        localStorage.setItem('id_usuario', data.id_usuario);
+                        window.location.href = "ventana.html";
+                        //alert('Inicio de sesión exitoso');
+                        // Redirigir o hacer alguna acción
+                    } else {
+                        alert('Correo o contraseña incorrectos');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error en la solicitud:', error);
+                    alert('Ocurrió un error. Inténtalo de nuevo.');
+                });
+        });
+    </script>
+</body>
+</html>

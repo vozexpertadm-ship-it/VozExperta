@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lista de Usuarios</title>
+  <link rel="stylesheet" href="styleAU.css">
+</head>
+<body>
+  <div class="button-container">
+    <div class="button-inicio" id="inicio">
+     <a href="ventana.html">
+          <img src="images/inicio.png" alt="Inicio"> 
+      </a>
+    </div>
+  </div>
+
+  <h1>Lista de Usuarios</h1>
+  <button class="add" id="addUserButton">Agregar Usuario</button>
+  <!-- <div class="table-details-container"> </div> -->
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nombre</th>
+          <th>Apellido</th>
+        </tr>
+      </thead>
+      <tbody id="userTable">
+        <!-- Usuarios cargados dinámicamente -->
+      </tbody>
+    </table>
+
+    <div class="details" id="userDetails">
+      <h2>Detalles del Usuario</h2>
+      <p>Selecciona un usuario para ver más información.</p>
+      <div id="actionButtons" style="display: none;">
+        <button id="modifyButton">Modificar</button>
+        <button id="deleteButton" class="delete">Eliminar</button>
+      </div>
+    </div>
+  
+
+  <!-- Modal -->
+  <div class="modal" id="addUserModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <strong>Agregar Usuario</strong>
+      </div>
+      <div class="modal-body">
+        <label for="name">Nombre:</label><br>
+        <input type="text" id="name" required><br><br>
+        <label for="lastname">Apellido:</label><br>
+        <input type="text" id="lastname" required><br><br>
+        <label for="email">Correo:</label><br>
+        <input type="email" id="email" required><br><br>
+        <label for="password">Contraseña:</label><br>
+        <input type="password" id="password" required><br>
+        <label>
+            <input type="checkbox" id="isAdmin"> Volver administrador
+        </label>
+      </div>
+      <div class="modal-footer">
+        <button id="cancelButton">Cancelar</button>
+        <button id="saveButton">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+   
+    // Cargar usuarios al inicio
+    document.addEventListener('DOMContentLoaded', () => {
+      fetch('http://localhost:3000/usuarios')
+        .then(response => response.json())
+        .then(data => {
+          const tableBody = document.getElementById('userTable');
+          tableBody.innerHTML = ''; // Limpiar contenido previo
+          data.forEach(user => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td>${user.id_usuario}</td>
+              <td>${user.nombre}</td>
+              <td>${user.apellido}</td>
+            `;
+            row.addEventListener('click', () => loadUserDetails(user.id_usuario));
+            tableBody.appendChild(row);
+          });
+        })
+        .catch(error => console.error('Error al cargar usuarios:', error));
+    });
+
+    // Cargar detalles de un usuario
+    function loadUserDetails(userId) {
+      fetch(`http://localhost:3000/usuarios/${userId}`)
+        .then(response => response.json())
+        .then(user => {
+          selectedUserId = user.id_usuario;
+          const detailsDiv = document.getElementById('userDetails');
+          detailsDiv.innerHTML = `
+            <h2>Detalles del Usuario</h2>
+            <p><strong>ID:</strong> ${user.id_usuario}</p>
+            <p><strong>Nombre:</strong> ${user.nombre}</p>
+            <p><strong>Apellido:</strong> ${user.apellido}</p>
+            <p><strong>Correo:</strong> ${user.correo}</p>
+            <p><strong>Contraseña:</strong> ********</p>
+          `;
+          const actionButtons = document.getElementById('actionButtons');
+          if (!actionButtons) {
+            const buttonsDiv = document.createElement('div');
+            buttonsDiv.id = 'actionButtons';
+            buttonsDiv.innerHTML = `
+              <button id="modifyButton">Modificar</button>
+              <button id="deleteButton" class="delete">Eliminar</button>
+            `;
+            detailsDiv.appendChild(buttonsDiv);
+          }
+          document.getElementById('actionButtons').style.display = 'block';
+        })
+        .catch(error => {
+          console.error('Error al cargar usuario:', error);
+          alert('Hubo un problema al procesar tu solicitud. Por favor, intenta nuevamente.');
+        });
+    }
+
+    // Eliminar usuario
+    document.addEventListener('click', (event) => {
+      if (event.target && event.target.id === 'deleteButton') {
+        if (selectedUserId && confirm('¿Estás seguro de que deseas eliminar este usuario?')) {
+          fetch(`http://localhost:3000/usuarios/${selectedUserId}`, { method: 'DELETE' })
+            .then(response => {
+              if (response.ok) {
+                alert('Usuario eliminado con éxito.');
+                document.getElementById('userDetails').innerHTML = '<h2>Detalles del Usuario</h2><p>Selecciona un usuario para ver más información.</p>';
+                document.getElementById('userTable').innerHTML = '';
+                selectedUserId = null;
+                
+                document.dispatchEvent(new Event('DOMContentLoaded'));
+              } else {
+                alert('Error al eliminar el usuario.');
+              }
+            })
+            .catch(error => {
+              console.error('Error al cargar usuario:', error);
+              alert('Hubo un problema al procesar tu solicitud. Por favor, intenta nuevamente.');
+            });
+          }
+      }
+    });
+
+
+
+    let isEditing = false; // Indica si estamos en modo de edición
+    let selectedUserId = null; // ID del usuario seleccionado para modificar
+
+    // Botones y modal
+    const addUserButton = document.getElementById('addUserButton');
+    const addUserModal = document.getElementById('addUserModal');
+    const cancelButton = document.getElementById('cancelButton');
+    const saveButton = document.getElementById('saveButton');
+    const modalHeader = document.querySelector('.modal-header strong');
+
+    // Abrir el modal para agregar un usuario
+    addUserButton.addEventListener('click', () => {
+        isEditing = false;
+        selectedUserId = null;
+        openModal('Agregar Usuario', '', '', '', '',2);
+    });
+
+    // Abrir el modal para editar un usuario
+    document.addEventListener('click', (event) => {
+        if (event.target && event.target.id === 'modifyButton') {
+        if (selectedUserId) {
+            fetch(`http://localhost:3000/usuarios/${selectedUserId}`)
+            .then(response => response.json())
+            .then(user => {
+                isEditing = true;
+                openModal('Modificar Usuario', user.nombre, user.apellido, user.correo, user.password,user.id_tipo);
+            })
+            .catch(error => {
+              console.error('Error al cargar usuario:', error);
+              alert('Hubo un problema al procesar tu solicitud. Por favor, intenta nuevamente.');
+            });
+          }
+        }
+    });
+
+    // Abrir el modal con datos dinámicos
+    function openModal(title, name, lastname, email, password,isAdminvalue) {
+        let isAdmin = (isAdminvalue == 1) ? true:false;
+        modalHeader.textContent = title;
+        document.getElementById('name').value = name;
+        document.getElementById('lastname').value = lastname;
+        document.getElementById('email').value = email;
+        document.getElementById('password').value = ''; //ocultamos la actual, se debe ingresar nueva solo si se desea cambiar
+        document.getElementById('isAdmin').checked = isAdmin;
+        addUserModal.style.display = 'flex';
+    }
+
+    // Cerrar el modal
+    cancelButton.addEventListener('click', () => {
+        addUserModal.style.display = 'none';
+    });
+
+    // Guardar datos del modal
+    saveButton.addEventListener('click', () => {
+        const name = document.getElementById('name').value;
+        const lastname = document.getElementById('lastname').value;
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const isAdmin = document.getElementById('isAdmin').checked;
+
+        if (name && lastname && email) {
+            let idtipo = (isAdmin) ? 1:2;
+
+            const userData = { nombre: name, apellido: lastname, correo: email, id_tipo: idtipo};
+            if (password){
+              userData.password=password; // solo se incluye si el usuario escribió algo
+            }
+        if (isEditing && selectedUserId) {
+            // Modificar usuario
+            fetch(`http://localhost:3000/usuarios/${selectedUserId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(userData),
+            })
+            .then(response => {
+                if (response.ok) {
+                alert('Usuario modificado con éxito.');
+                document.dispatchEvent(new Event('DOMContentLoaded')); // Recargar usuarios
+                addUserModal.style.display = 'none';
+                } else {
+                alert('Error al modificar el usuario.');
+                }
+            })
+            .catch(error => {
+              console.error('Error al cargar usuario:', error);
+              alert('Hubo un problema al procesar tu solicitud. Por favor, intenta nuevamente.');
+            });
+        } else {
+            // Agregar usuario
+            fetch('http://localhost:3000/usuarios', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(userData),
+            })
+            .then(response => {
+                if (response.ok) {
+                alert('Usuario agregado con éxito.');
+                document.dispatchEvent(new Event('DOMContentLoaded')); // Recargar usuarios
+                addUserModal.style.display = 'none';
+                } else {
+                alert('Error al agregar el usuario.');
+                }
+            })
+            .catch(error => {
+              console.error('Error al cargar usuario:', error);
+              alert('Hubo un problema al procesar tu solicitud. Por favor, intenta nuevamente.');
+            });
+        }
+        } else {
+        alert('Por favor, completa todos los campos.');
+        }
+    });
+
+    // Cerrar modal al hacer clic fuera del contenido
+    window.addEventListener('click', (event) => {
+        if (event.target === addUserModal) {
+        addUserModal.style.display = 'none';
+        }
+    });
+  </script>
+</body>
+</html>

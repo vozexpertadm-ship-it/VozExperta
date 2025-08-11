@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulario Desglosado</title>
+    <link rel="stylesheet" href="styleRC.css">
+</head>
+<body>
+    <div class="button-container">
+        <div class="button-inicio" id="inicio">
+            <a href="ventana.html">
+                <img src="images/inicio.png" alt="Inicio"> 
+            </a>
+        </div>
+    </div>
+<br>
+    <div>
+        <h1>Encuestas disponibles</h1>
+        <table>
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Fecha de apertura</th>
+                <th>Fecha de cierre</th>
+            </tr>
+            </thead>
+            <tbody id="userTable">
+            <!-- Usuarios cargados dinámicamente -->
+            </tbody>
+        </table>
+    </div>
+    <div class="container">
+        <h2>Formulario Desglosado - Responde aquí</h2>
+        <form id="response-form">
+            <div id="questionnaire-preview">
+                <!-- Las preguntas se mostrarán aquí -->
+            </div>
+            <button type="submit">Enviar Respuestas</button>
+        </form>
+    </div>
+
+    <script>
+
+        let preguntasCargadas=[];
+        let cuestionarioCargado;
+        const idUsuarioLogueado = localStorage.getItem('id_usuario');
+        // console.log(idUsuarioLogueado);
+
+        fetch('http://localhost:3000/get-idcuestionarios', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ fechaActual: new Date().toISOString().slice(0, 10) }) // o cualquier fecha válida
+        })
+        .then(response => response.json())
+        .then(data => {
+            const tableBody = document.getElementById('userTable');
+            tableBody.innerHTML = ''; // Limpia la tabla antes de cargar nuevos datos
+
+            data.forEach(cuestionario => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${cuestionario.id_cuestionario}</td>
+                    <td>${cuestionario.nombre}</td>
+                    <td>${cuestionario.fecha_apertura.slice(0, 10)}</td>
+                    <td>${cuestionario.fecha_cierre.slice(0, 10)}</td>
+                `;
+                row.addEventListener('click', () => loadQuestionnaireDetails(cuestionario.id_cuestionario));
+                tableBody.appendChild(row);
+            });
+            
+        })
+        .catch(error => console.error('Error al cargar los cuestionarios disponibles:', error));
+
+        function loadQuestionnaireDetails(questId) {
+            fetch('http://localhost:3000/verificar-respuesta', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    id_usuario: parseInt(idUsuarioLogueado),
+                    id_cuestionario: questId
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.yaContestado) {
+                    alert('Ya has respondido este cuestionario. Solo se permite una participación.');
+                    return;
+                }
+            
+            cuestionarioCargado = questId;
+
+            fetch('http://localhost:3000/get-cuestionarios', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ idCuestionario: questId })
+            })
+            .then(res => res.json())
+            .then(preguntas => {
+                const preview = document.getElementById('questionnaire-preview');
+                preview.innerHTML = '';
+
+                preguntasCargadas = preguntas.map(p => ({
+                    id: p.id_pregunta,
+                    orden: p.orden,
+                    tipo: p.tipo_pregunta
+
+                }));
+
+                preguntas.forEach((pregunta, index) => {
+                    const div = document.createElement('div');
+                    div.classList.add('pregunta');
+                    const titulo = document.createElement('p');
+                    titulo.textContent = `${index + 1}. ${pregunta.texto_pregunta}`;
+                    div.appendChild(titulo);
+
+                    switch (pregunta.tipo_pregunta) {
+                        case 'texto': {
+                            const input = document.createElement('textarea');
+                            input.required = true;
+                            input.name = `pregunta_${pregunta.orden}`;
+                            input.rows = 10;
+                            input.cols = 100;
+                            div.appendChild(input);
+                            break;
+                        }
+                        case 'multiple': {
+                            fetch('http://localhost:3000/get-opcionesM', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ idPregunta: pregunta.id_pregunta })
+                            })
+                            .then(res => res.json())
+                            .then(opcionesP => {
+                                opcionesP.forEach((opcion, index) => {
+                                    const input = document.createElement('input');
+                                    input.required = true;
+                                    input.type = 'radio';
+                                    input.name = `pregunta_${pregunta.orden}`;
+                                    input.value = opcion.id_opcionpregunta;
+                                    input.id = `opcion_${pregunta.id_pregunta}_${index}`;
+
+                                    const label = document.createElement('label');
+                                    label.htmlFor = input.id;
+                                    label.textContent = opcion.opcionpregunta;  
+
+                                    const opcionDiv = document.createElement('div');
+                                    opcionDiv.appendChild(input);
+                                    opcionDiv.appendChild(label);
+
+                                    div.appendChild(opcionDiv); 
+                                });
+                            })
+                            .catch(err => console.error('Error al cargar las opciones preguntas:', err));
+                            break;
+                        }
+
+                        case 'scale': {
+                            for (let i = 1; i <= 5; i++) {
+                                const label = document.createElement('label');
+                                const input = document.createElement('input');
+                                input.required = true;
+                                input.type = 'radio';
+                                input.name = `pregunta_${pregunta.orden}`;
+                                input.value = i;
+                                label.appendChild(input);
+                                label.append(` ${i} `);
+                                div.appendChild(label);
+                            }
+                            break;
+                        }
+                        case 'matrix': {
+                            const table = document.createElement('table');
+                            const thead = document.createElement('thead');
+                            const headRow = document.createElement('tr');
+                            headRow.innerHTML = '<th>Nombre</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>NA</th>';
+                            thead.appendChild(headRow);
+                            table.appendChild(thead);
+
+                            const tbody = document.createElement('tbody');
+
+                            fetch('http://localhost:3000/usuarios-matrix')
+                                .then(response => response.json())
+                                .then(data => {
+                                    data.forEach(user => {
+                                        const row = document.createElement('tr');
+
+                                        // Nombre completo
+                                        const nameCell = document.createElement('td');
+                                        nameCell.textContent = `${user.nombre} ${user.apellido}`;
+                                        row.appendChild(nameCell);
+
+                                        // Botones de opción
+                                        for (let i = 1; i <= 6; i++) {
+                                            const radioCell = document.createElement('td');
+                                            const input = document.createElement('input');
+                                            input.required = true;
+                                            input.type = 'radio';
+                                            input.name = `pregunta_${pregunta.orden}_usuario_${user.id_usuario}`; // Único por usuario y pregunta
+                                            input.value = i;
+                                            if(i==6) input.value=0;
+                                            radioCell.appendChild(input);
+                                            row.appendChild(radioCell);
+                                        }
+
+                                        tbody.appendChild(row);
+                                    });
+                                    table.appendChild(tbody);
+                                    div.appendChild(table);
+                                })
+                                .catch(error => console.error('Error al cargar usuarios:', error));
+                            break;
+                        }
+
+                    }
+
+                    preview.appendChild(div);
+                });
+            })
+            .catch(err => console.error('Error al cargar las preguntas:', err));
+        })
+        .catch(error => {
+        console.error('Error al verificar si el usuario ya respondió:', error);
+        alert('No se pudo verificar la participación anterior.');
+    });
+    
+    } 
+    function submitResponses() {
+        if (!idUsuarioLogueado) {
+            alert('No estás logueado.');
+            return;
+        }
+        if (!cuestionarioCargado) {
+            alert('No has seleccionado ningún cuestionario.');
+            return;
+        }
+
+        const respuestas = [];
+
+        preguntasCargadas.forEach(pregunta => {
+            const nombreCampo = `pregunta_${pregunta.orden}`;
+            const tipo = pregunta.tipo;
+
+            if (tipo === 'texto') {
+                const textarea = document.querySelector(`textarea[name="${nombreCampo}"]`);
+                if (textarea && textarea.value.trim() !== "") {
+                    respuestas.push({
+                        id_preguntac: pregunta.id,           // nota id_preguntac para cualitativas
+                        respuesta: textarea.value.trim(),
+                        tipo: 'texto',
+                        id_cuestionario: cuestionarioCargado
+                    });
+                }
+            } else if (tipo === 'multiple' || tipo === 'scale') {
+                const seleccion = document.querySelector(`input[name="${nombreCampo}"]:checked`);
+                if (seleccion) {
+                    respuestas.push({
+                        id_pregunta: pregunta.id,           // id para cuantitativas
+                        respuesta: seleccion.value,
+                        tipo: tipo
+                    });
+                }
+            } else if (tipo === 'matrix') {
+                const inputsMatrix = document.querySelectorAll(`input[name^="${nombreCampo}_usuario_"]:checked`);
+                inputsMatrix.forEach(input => {
+                    const match = input.name.match(/^pregunta_(\d+)_usuario_(\d+)$/);
+                    
+                    if (match) {
+                        const id_usuario_objetivo = parseInt(match[2]);
+                        respuestas.push({
+                            id_pregunta: pregunta.id,
+                            id_usuario: parseInt(idUsuarioLogueado),
+                            id_usuario_objetivo: id_usuario_objetivo,
+                            respuesta: input.value,
+                            tipo: 'matrix'
+                        });
+                    }
+                });
+            }
+        });
+
+        if (respuestas.length === 0) {
+            alert('No has respondido ninguna pregunta.');
+            return;
+        }
+
+        const respuestasFiltradas = respuestas.filter(r =>
+            r.respuesta !== undefined && r.respuesta !== "undefined" && r.respuesta !== null && r.respuesta !== ""
+        );
+
+        // console.log("Enviando respuestas con:", {
+        //     id_usuario: parseInt(idUsuarioLogueado),
+        //     id_cuestionario: cuestionarioCargado,
+        //     respuestas: respuestasFiltradas
+        // });
+
+        fetch('http://localhost:3000/guardar-respuestas', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                id_usuario: parseInt(idUsuarioLogueado),
+                id_cuestionario: cuestionarioCargado,
+                respuestas: respuestasFiltradas
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.exito) {
+                alert('Respuestas guardadas con éxito.');
+                document.getElementById('questionnaire-preview').innerHTML = '';
+                //document.getElementById('response-form').style.display = 'none';
+                cuestionarioCargado = null;
+
+            } else {
+                alert('Error al guardar las respuestas.');
+            }
+        })
+        .catch(err => {
+            console.error('Error al enviar respuestas:', err);
+            alert('Error de conexión con el servidor.');
+        });
+
+    }
+    document.getElementById('response-form').addEventListener('submit', function(event) {
+        event.preventDefault(); 
+        submitResponses();      
+    });
+
+    </script>
+<!-- 
+
+    Los usuarios no pueden contestar dos veces el mismo cuestionario
+    Agregar boton home a CrearCuestionario
+    Calculo: promedio, desviación estandar.
+    enviar correos. 
+
+-->
+</body>
+</html>

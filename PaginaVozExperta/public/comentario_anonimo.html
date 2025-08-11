@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Comentario Anónimo</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="comentario-container">
+    <h2>Envía un comentario anónimo</h2>
+    <p>Tu mensaje será enviado de forma completamente anónima. Agradecemos tu disposición a mejorar el consejo.</p>
+    <textarea id="comentario" placeholder="Escribe tu comentario aquí..."></textarea>
+    <br />
+    <button onclick="enviarComentario()">Enviar Comentario</button>
+  </div>
+
+  <script>
+    function enviarComentario() {
+      const mensaje = document.getElementById('comentario').value.trim();
+
+      if (!mensaje) {
+        alert("Por favor, escribe un comentario antes de enviarlo.");
+        return;
+      }
+
+      fetch('http://localhost:3000/comentario-anonimo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mensaje })
+      })
+      .then(res => res.json())
+      .then(data => {
+        alert(data.mensaje || "Comentario enviado.");
+        window.location.href = "index.html";
+      })
+      .catch(err => {
+        console.error("Error al enviar comentario:", err);
+        alert("Ocurrió un error al enviar tu comentario.");
+      });
+    }
+  </script>
+</body>

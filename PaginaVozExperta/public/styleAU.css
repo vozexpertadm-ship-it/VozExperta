@@ -1,0 +1,255 @@
+table {
+  width: 100%;
+ /*width: auto;                 Se ajusta al contenido */
+  max-width: 100%;
+  margin: 20px 0 20px 0px;   /* Arriba-Derecha-Abajo-Izquierda */
+  border-collapse: collapse;
+  background-color: white;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+/*Formato de tabla tipo cebra*/
+/*
+table tr:nth-child(even){
+    background-color: rgb(222, 176, 234);
+}
+*/
+
+td, th {
+  padding: 10px 15px;
+  text-align: left;
+  white-space: nowrap; /* evita saltos de línea */
+  border: 1px solid #ddd;
+}
+
+
+th {
+    background-color: #f2f2f2;
+}
+
+table tr:hover{
+    background-color: rgb(251, 244, 255);
+}
+
+
+.details {
+    margin-top: 20px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    background-color: #f9f9f9;
+}
+
+.scrollable-table {
+  max-height: 400px; /* o el alto que prefieras */
+  overflow-y: auto;
+  border: 1px solid #ccc;
+  margin-bottom: 20px;
+}
+
+.scrollable-table table {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 600px;
+}
+
+
+button {
+    margin: 5px;
+    padding: 10px 15px;
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+button.delete {
+    background-color: #DC3545;
+}
+
+button:hover {
+    opacity: 0.7;
+}
+
+
+
+/* Contenedor de los botones */
+.button-container {
+    display: flex;
+    position: absolute;  /* Asegura que los botones estén en una posición fija */
+    top: 20px;  /* Distancia desde la parte superior */
+    left: 20px;  /* Distancia desde la parte izquierda */
+    gap: 20px;  /* Espacio entre los botones */
+    z-index: 10; /* Asegura que los botones estén por encima de otros elementos */
+}
+
+/* Estilos comunes para los botones */
+.button-inicio,
+.button-atras {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background-color: #d3fafb;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+    cursor: pointer;
+}
+
+/* Imágenes dentro de los botones */
+.button-inicio img,
+.button-atras img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+ /* color al boton agregar*/
+button.add {
+    background-color: #28a745; /* verde */
+}
+
+/* Ajuste del título para darle más espacio */
+h1 {
+    font-family: Impact,'Arial Narrow Bold', sans-serif;
+    margin-top: 100px; /* Asegura que haya suficiente espacio debajo del botón */
+    text-align:left /* Centrado del título */
+}
+/* Para diseño a la derecha de la tabla 
+.table-details-container {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 40px; #Espacio entre tabla y detalles 
+  margin-top: 20px;
+}
+*/ 
+
+/* Para diseño a la derecha Que la tabla no sea demasiado ancha 
+.table-details-container table {
+  width: auto;
+  min-width: 300px;
+  max-width: 600px;
+}
+*/
+/* Detalles a la derecha 
+.table-details-container .details {
+  background-color: #f4f4f4;
+  padding: 15px 20px;
+  border-radius: 8px;
+  width: 300px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+*/
+/* Ajustar títulos dentro del panel para diseño a la derecha
+.table-details-container .details h2 {
+  margin-top: 0;
+}
+*/
+
+
+/* Modal estilos */
+.modal {
+    display: none;
+    /* Oculto por defecto */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    width: 90%;
+    max-width: 400px;
+    animation: slideIn 0.3s ease-out;
+}
+@keyframes slideIn {
+    from {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+.modal-header {
+    font-size: 18px;
+    margin-bottom: 10px;
+}
+
+.modal-footer {
+    text-align: right;
+    margin-top: 15px;
+}
+
+.modal-footer button {
+    margin-left: 10px;
+}
+
+
+/* Diseño responsivo */
+
+@media screen and (max-width: 768px) {
+    table {
+        font-size: 14px;
+    }
+
+    th,
+    td {
+        padding: 6px;
+    }
+
+    button {
+        padding: 8px 12px;
+        font-size: 14px;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    table {
+        font-size: 12px;
+    }
+
+    th,
+    td {
+        padding: 4px;
+    }
+
+    button {
+        padding: 6px 10px;
+        font-size: 12px;
+    }
+
+    .modal-content {
+        padding: 15px;
+    }
+}
+/* Solo si se hace el diseño de tablas a la derecha Diseño vertical de despliegue de contenido en moviles
+@media (max-width: 768px) {
+  .table-details-container {
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .table-details-container table {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .table-details-container .details {
+    width: 100%;
+    max-width: 100%;
+    margin-top: 10px;
+  }
+}
+*/

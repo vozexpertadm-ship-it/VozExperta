@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bienvenidos</title>
+    <link rel="stylesheet" href="styleV.css">
+</head>
+<body>
+    <button id="cerrar-sesion" onclick="cerrarSesion()">Cerrar sesión</button>
+    <div id="menu">
+        <h2>Bienvenido al sistema de evaluación</h2>
+        <h3>Selecciona una opción:</h3>
+        <div class="button-container">
+            <!-- Botón Administrar Usuarios -->
+            <div class="button" id="admin-usuario" style="display: none;">
+                <a href="AdminUsuario.html">
+                    <div class="image-container">
+                        <img src="images/administrador.png" alt="Administrador">
+                        <span class="tooltip">Administrar Usuarios</span>
+                    </div>
+                </a>
+            </div>
+            <!-- Botón Administrar Cuestionarios -->
+            <div class="button" id="admin-cuestionario" style="display: none;">
+                <a href="AdministrarCuestionarios.html">
+                    <div class="image-container">
+                        <img src="images/cuestAdm.png" alt="Administrar Cuestionarios">
+                        <span class="tooltip">Administrar Cuestionarios</span>
+                    </div>
+                </a>
+            </div>
+            <!-- Botón Responder Cuestionario -->
+            <div class="button" id="responder-cuestionario">
+                <a href="cuestionario.html">
+                    <div class="image-container">
+                        <img src="images/cuestionario.png" alt="Responder Cuestionario">
+                        <span class="tooltip">Responder Cuestionario</span>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Obtener el tipo de usuario del sessionStorage
+        const tipoUsuario = localStorage.getItem('id_tipo');
+        // console.log(tipoUsuario);
+        // console.log(localStorage.getItem('id_usuario'))
+
+        // Mostrar opciones según el tipo de usuario
+        if (tipoUsuario == 1) { // Admin
+            document.getElementById('admin-usuario').style.display = 'block';
+            document.getElementById('admin-cuestionario').style.display = 'block';
+        }
+
+        // Función para cerrar sesión
+        function cerrarSesion() {
+            localStorage.clear();
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>

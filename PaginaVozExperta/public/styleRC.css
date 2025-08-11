@@ -1,0 +1,119 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #e1dddd;
+}
+.container {
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #fff;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+}
+h1 {
+    text-align: center;
+    color: #333;
+}
+.question {
+    margin-bottom: 20px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+}
+.question strong {
+    color: #333;
+}
+.response {
+    margin-top: 10px;
+}
+.response input[type="text"],
+.response textarea {
+    width: 100%;
+    padding: 10px;
+    margin: 8px 0;
+    border: 1px solid #fbfbfb;
+    border-radius: 4px;
+}
+.response input[type="radio"],
+.response input[type="checkbox"] {
+    margin-right: 5px;
+}
+.response label {
+    margin-right: 10px;
+}
+button {
+    background-color: #007BFF;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 20px;
+}
+button:hover {
+    background-color: #0056b3;
+}
+
+/* Contenedor de los botones */
+.button-container {
+    display: flex;
+    position: absolute;  /* Asegura que los botones estén en una posición fija */
+    top: 20px;  /* Distancia desde la parte superior */
+    left: 20px;  /* Distancia desde la parte izquierda */
+    gap: 20px;  /* Espacio entre los botones */
+    z-index: 10; /* Asegura que los botones estén por encima de otros elementos */
+}
+
+/* Estilos comunes para los botones */
+.button-inicio,
+.button-atras {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background-color: #d3fafb;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+    cursor: pointer;
+}
+
+/* Imágenes dentro de los botones */
+.button-inicio img,
+.button-atras img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+/*Formato de tabla tipo cebra*/
+/*
+table tr:nth-child(even){
+    background-color: rgb(222, 176, 234);
+}
+*/
+
+th,
+td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+th {
+    background-color: #f2f2f2;
+}
+
+table tr:hover{
+    background-color: rgb(251, 244, 255);
+}

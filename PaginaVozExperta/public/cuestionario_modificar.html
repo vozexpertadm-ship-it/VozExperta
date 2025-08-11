@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Modificar Cuestionarios</title>
+  <link rel="stylesheet" href="styleAU.css">
+</head>
+<body>
+  <div class="button-container">
+        <div class="button-inicio" id="inicio">
+            <a href="ventana.html">
+                <img src="images/inicio.png" alt="Inicio"> 
+            </a>
+        </div>
+        <div class="button-atras" id="atras">
+            <a href="AdministrarCuestionarios.html">
+                <img src="images/atras.png" alt="Inicio"> 
+            </a>
+        </div>    
+    </div>
+
+  <h1>Lista de Cuestionarios disponibles para Modificar</h1>
+ <!-- <div class="table-details-container"></div> -->
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nombre</th>
+          <th>Fecha Creación</th>
+        </tr>
+      </thead>
+      <tbody id="cuestionarioTable"></tbody>
+    </table>
+
+    <div class="details" id="cuestionarioDetails">
+      <h2>Detalles del cuestionario</h2>
+      <p>Selecciona un cuestionario para ver más información.</p>
+    </div>
+  
+
+  <script>
+    let cuestionarioActivoId = null;
+    // Cargar cuestionarios al inicio
+    document.addEventListener('DOMContentLoaded', () => {
+      fetch('http://localhost:3000/cuestionarios-activos')
+        .then(response => response.json())
+        .then(data => {
+          const tableBody = document.getElementById('cuestionarioTable');
+          tableBody.innerHTML = '';
+          data.forEach(c => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td>${c.id_cuestionario}</td>
+              <td>${c.nombre}</td>
+              <td>${c.fecha_creacion}</td>
+            `;
+            row.addEventListener('click', () => loadcuestionarioDetails(c.id_cuestionario));
+            tableBody.appendChild(row);
+          });
+        });
+    });
+    // Cargar detalles de un cuestionario
+  function loadcuestionarioDetails(cuestionarioId) {
+    cuestionarioActivoId = cuestionarioId;
+    fetch(`http://localhost:3000/cuestionarios/${cuestionarioId}`)
+    .then(res => res.json())
+    .then(data => {
+      const detalles = document.getElementById('cuestionarioDetails');
+      detalles.innerHTML = `
+      <div id="info-basica-cuestionario">
+        <h2>Detalles del cuestionario</h2>
+        <p><strong>ID:</strong> ${data.id_cuestionario}</p>
+        <p><strong>Nombre:</strong> ${data.nombre}</p>
+        <label>Fecha de apertura:</label>
+        <input type="date" id="fechaApertura" value="${data.fecha_apertura.split('T')[0]}" disabled><br>
+        <label>Fecha de cierre:</label>
+        <input type="date" id="fechaCierre" value="${data.fecha_cierre.split('T')[0]}" disabled><br>
+        <button class="delete"  onclick="confirmarEliminarCuestionario(${data.id_cuestionario})">Eliminar</button>
+        <button onclick="expandirModificacion(${data.id_cuestionario})">Modificar</button>
+      </div> 
+      <div id="modificacion-completa"></div>
+      `;
+        })
+    .catch(error => {
+      console.error('Error al cargar detalles del cuestionario:', error);
+    });
+}
+  function expandirModificacion(cuestionarioId) {
+      document.getElementById('info-basica-cuestionario').style.display = 'none';
+      fetch(`http://localhost:3000/cuestionarios/${cuestionarioId}`)
+        .then(res => res.json())
+        .then(data => {
+          const container = document.getElementById('modificacion-completa');
+          container.innerHTML = `
+          <label>Modificar fecha de apertura:</label>
+          <input type="date" id="fechaAperturaEdit" value="${data.fecha_apertura.split('T')[0]}"><br>
+          <label>Modificar fecha de cierre:</label>
+          <input type="date" id="fechaCierreEdit" value="${data.fecha_cierre.split('T')[0]}"><br>
+          <button onclick="guardarFechas(${data.id_cuestionario})">Guardar fechas</button>
+         <div id="preguntas-container"></div>
+        `;
+
+        fetch('http://localhost:3000/get-cuestionarios', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idCuestionario: cuestionarioId })
+      })
+        .then(res => res.json())
+        .then(preguntas => {
+          const container = document.getElementById('preguntas-container');
+          container.innerHTML = '<h3>Preguntas:</h3>';
+
+          preguntas.forEach((p, i) => {
+            const preguntaId = p.id_pregunta;
+            const tipo = p.tipo_pregunta;
+            const div = document.createElement('div');
+            div.classList.add('pregunta-modificar');
+
+            div.innerHTML = `
+              <label>Pregunta ${i + 1}:</label><br>
+              <input type="text" id="pregunta-${preguntaId}" value="${p.texto_pregunta}" style="width: 70%;">
+              ${tipo === 'texto'
+                ? `<select id="tipo-${preguntaId}" disabled><option value="text">Texto libre</option></select>`
+                : `<select id="tipo-${preguntaId}" disabled>
+                    <option value="multiple" ${tipo === 'multiple' ? 'selected' : ''}>Múltiple</option>
+                    <option value="scale" ${tipo === 'scale' ? 'selected' : ''}>Escala</option>
+                    <option value="matrix" ${tipo === 'matrix' ? 'selected' : ''}>Matriz</option>
+                  </select>`
+              }
+              <button onclick="guardarPregunta('${preguntaId}', '${tipo}')">Guardar</button>
+              <button class="delete"  onclick="eliminarPregunta('${preguntaId}', '${tipo}')">Eliminar</button>
+            `;
+
+            container.appendChild(div);
+
+            if (tipo === 'multiple') {
+              fetch('http://localhost:3000/get-opcionesM', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ idPregunta: preguntaId })
+              })
+              .then(r => r.json())
+              .then(opciones => {
+                const opcionesDiv = document.createElement('div');
+                opcionesDiv.innerHTML = `<strong>Opciones:</strong><br>`;
+                opciones.forEach(opcion => {
+                  opcionesDiv.innerHTML += `
+                    <div style="margin-bottom: 5px;">
+                      <input type="text" id="opcion-${opcion.id_opcionpregunta}" value="${opcion.opcionpregunta}" style="width: 60%;">
+                      <button class="delete"  onclick="eliminarOpcion(${opcion.id_opcionpregunta}, ${preguntaId})">Borrar</button>
+                    </div>
+                  `;
+                });
+
+                opcionesDiv.innerHTML += `
+                  <br>
+                  <input type="text" id="nuevaOpcion-${preguntaId}" placeholder="Nueva opción..." style="width: 60%;">
+                  <button class="add" onclick="agregarOpcion(${preguntaId})"> Agregar opción</button>
+                  <br><br>
+                  <button onclick="guardarOpciones(${preguntaId})">Guardar opciones</button>
+                `;
+
+                div.appendChild(opcionesDiv);
+              })
+              .catch(error => {
+                console.error('Error al cargar opciones:', error);
+              });
+            }
+          });
+
+          // Agregar sección para nueva pregunta (fuera del forEach)
+          const nuevaPreguntaDiv = document.createElement('div');
+          nuevaPreguntaDiv.innerHTML = `
+            <hr>
+            <h3>Agregar nueva pregunta:</h3>
+            <input type="text" id="nuevaPreguntaTexto" placeholder="Escribe la nueva pregunta" style="width: 70%;"><br><br>
+            <label for="nuevaPreguntaTipo">Tipo:</label>
+            <select id="nuevaPreguntaTipo" onchange="mostrarCamposOpciones(this.value)">
+              <option value="text">Texto libre</option>
+              <option value="multiple">Múltiple</option>
+              <option value="scale">Escala 1-5</option>
+              <option value="matrix">Matriz 1-5</option>
+            </select>
+            <div id="opcionesContainer" style="margin-top: 10px;"></div>
+            <button class="add" onclick="agregarPregunta(${cuestionarioId})">Agregar</button>
+          `;
+          container.appendChild(nuevaPreguntaDiv);
+        })
+        .catch(error => {
+          console.error('Error al cargar preguntas:', error);
+        });
+    })
+    .catch(error => {
+      console.error('Error al cargar detalles del cuestionario:', error);
+    });
+}
+
+//funcion para eliminar cuestionarios
+  function confirmarEliminarCuestionario(id){
+    if (confirm("¿Estás seguro de que quieres eliminar este cuestionario?")){
+      fetch(`http://localhost:3000/cuestionarios/${id}`, {
+      method: 'DELETE'
+    })
+    .then(res => res.json())
+    .then(result => {
+      if (result.exito) {
+        alert("Cuestionario eliminado correctamente");
+        location.reload();
+      } else {
+        alert("Hubo un error al eliminar el cuestionario");
+      }
+    })
+    .catch(error => console.error('Error al eliminar cuestionario:', error));
+    }
+  }
+    // Funcion para guardar las fechas modificadas
+    function guardarFechas(idCuestionario) {
+      const inputApertura = document.getElementById('fechaAperturaEdit');
+      const inputCierre = document.getElementById('fechaCierreEdit');
+                
+      const fechaApertura = inputApertura.value;
+      const fechaCierre = inputCierre.value;
+                
+      // Validar que al menos una fecha se esté modificando
+      if (!fechaApertura && !fechaCierre) {
+        alert("Debes modificar al menos una fecha.");
+        return;
+      }
+      // Enviar solo los campos que tienen valor
+      const body = {};
+      if (fechaApertura) body.fecha_apertura = fechaApertura;
+      if (fechaCierre) body.fecha_cierre = fechaCierre;
+                
+      fetch(`http://localhost:3000/cuestionarios/${idCuestionario}/fechas`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      })
+      .then(response => response.json())
+      .then(result => {
+        if (result.exito) {
+          alert("Fechas actualizadas correctamente.");
+          expandirModificacion(idCuestionario);
+        } else {
+          alert("Error al actualizar fechas.");
+        }
+      })
+      .catch(error => {
+        console.error('Error al guardar fechas:', error);
+        alert("Hubo un error al guardar las fechas.");
+      });
+    }
+    // Funcion para guardar preguntas modificadas
+    function guardarPregunta(id, tipoOriginal) {
+      const texto = document.getElementById(`pregunta-${id}`).value;
+      const nuevoTipo = document.getElementById(`tipo-${id}`).value;
+
+      const endpoint = tipoOriginal === 'texto' ? `/pregunta-cuali/${id}` : `/pregunta-cuant/${id}`;
+      const body = tipoOriginal === 'texto'
+      ? { pregunta: texto }
+      : { pregunta: texto, tipo: nuevoTipo };
+      fetch(`http://localhost:3000${endpoint}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      })
+      .then(res => res.json())
+      .then(result => {
+        if (result.exito) {
+          alert('Pregunta actualizada correctamente.');
+          expandirModificacion(cuestionarioActivoId);
+
+          // Si se modificó el tipo, actualizamos el tipo original en el botón
+          if (tipoOriginal !== 'texto') {
+              // Actualizar el valor del atributo data del botón
+            const select = document.getElementById(`tipo-${id}`);
+            select.value = nuevoTipo;
+
+            // También puedes actualizar el botón para que siga enviando el nuevo tipo actual
+            const boton = select.parentElement.querySelector('button');
+            boton.setAttribute('onclick', `guardarPregunta('${id}', '${nuevoTipo}')`);
+          }
+        } else {
+          alert('Error al actualizar la pregunta.');
+        }
+      })
+      .catch(error => {
+        console.error('Error al actualizar pregunta:', error);
+        alert('Error al actualizar la pregunta.');
+      });
+    }
+    // Funcion para guardar opciones multiples modificadas
+    function guardarOpciones(preguntaId) {
+      const inputs = document.querySelectorAll(`input[id^="opcion-"]`);
+      const opciones = [];
+      inputs.forEach(input => {
+        const idOpcion = input.id.split('-')[1];
+        const texto = input.value.trim();
+        if (texto !== '') {
+          opciones.push({ id: idOpcion, texto });
+        }
+      });
+      fetch('http://localhost:3000/opciones', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ opciones })
+      })
+      .then(res => res.json())
+      .then(result => {
+        if (result.exito) {
+          alert('Opciones actualizadas correctamente.');
+          expandirModificacion(cuestionarioActivoId);
+        } else {
+          alert('Error al actualizar las opciones.');
+        }
+      })
+      .catch(error => {
+        console.error('Error al actualizar opciones:', error);
+        alert('Hubo un error al actualizar las opciones.');
+      });
+    }
+   //funcion para agregar otra opcion multiple a las que ya estan 
+    function agregarOpcion(idPregunta) {
+      const texto = document.getElementById(`nuevaOpcion-${idPregunta}`).value.trim();
+      if (!texto) {
+       alert("La opción no puede estar vacía.");
+        return;
+      }
+      fetch('http://localhost:3000/opcion', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idPregunta, texto })
+      })
+      .then(res => res.json())
+      .then(result => {
+        if (result.exito) {
+          expandirModificacion(cuestionarioActivoId); // recargar
+        } else {
+          alert("Error al agregar opción.");
+        }
+      })
+      .catch(err => {
+        console.error('Error al agregar opción:', err);
+        alert("Hubo un error al agregar la opción.");
+      });
+    }
+// Funcion para eliminar una opcion multiple de alguna pregunta
+    function eliminarOpcion(idOpcion, idPregunta) {
+      const confirmar = confirm("¿Eliminar esta opción?");
+      if (!confirmar) return;
+      
+      fetch(`http://localhost:3000/opcion/${idOpcion}`, {
+        method: 'DELETE'
+      })
+      .then(res => res.json())
+      .then(result => {
+        if (result.exito) {
+          expandirModificacion(cuestionarioActivoId); // recargar
+        } else {
+          alert("Error al eliminar opción.");
+        }
+      })
+      .catch(err => {
+        console.error('Error al eliminar opción:', err);
+        alert("Hubo un error al eliminar la opción.");
+      });
+    }
+
+    //Funcion para eliminar pregunta
+    function eliminarPregunta(id, tipo) {
+      const confirmacion = confirm('¿Estás segura de que deseas eliminar esta pregunta?');
+      
+      if (!confirmacion) return;
+      const endpoint = tipo === 'texto' ? `/pregunta-cuali/${id}` : `/pregunta-cuant/${id}`;
+      fetch(`http://localhost:3000${endpoint}`, {
+        method: 'DELETE'
+      })
+      .then(res => res.json())
+      .then(result => {
+        if (result.exito) {
+          alert('Pregunta eliminada correctamente.');
+          expandirModificacion(cuestionarioActivoId); // recarga
+        } else {
+          alert('Error al eliminar la pregunta.');
+        }
+      })
+      .catch(error => {
+        console.error('Error al eliminar pregunta:', error);
+        alert('Hubo un error al eliminar la pregunta.');
+      });
+    }
+
+    //Funcion agregar pregunta desde la seccion modificar
+    function agregarPregunta(idCuestionario) {
+      const texto = document.getElementById('nuevaPreguntaTexto').value.trim();
+      const tipo = document.getElementById('nuevaPreguntaTipo').value;
+      
+      if (!texto) {
+        alert('La pregunta no puede estar vacía.');
+        return;
+      }
+
+      // Recolectar opciones si es tipo "multiple"
+      let opciones = [];
+      if (tipo === 'multiple') {
+        const inputs = document.querySelectorAll('.opcion-multiple');
+        opciones = Array.from(inputs)
+        .map(input => input.value.trim())
+        .filter(op => op !== '');
+        if (opciones.length < 2) {
+          alert('Debes ingresar al menos dos opciones.');
+          return;
+        }
+      }
+      fetch('http://localhost:3000/preguntas', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          idCuestionario,
+          texto,
+          tipo,
+          opciones // <-- ahora se incluye
+          })
+        })
+        .then(res => res.json())
+        .then(result => {
+          if (result.exito) {
+            alert('Pregunta agregada correctamente.');
+            expandirModificacion(cuestionarioActivoId);
+            document.getElementById('nuevaPreguntaTexto').value = '';
+            document.getElementById('nuevaPreguntaTipo').value = 'text';
+            document.getElementById('opcionesContainer').innerHTML = '';
+          } else {
+            alert('Error al agregar la pregunta.');
+          }
+        })
+        .catch(error => {
+          console.error('Error al agregar pregunta:', error);
+          alert('Hubo un error al agregar la pregunta.');
+        });
+      }
+      //Funcion para mostrar las opciones multiples
+      function mostrarCamposOpciones(valor) {
+        const contenedor = document.getElementById('opcionesContainer');
+        contenedor.innerHTML = '';
+        if (valor === 'multiple') {
+          const label = document.createElement('label');
+          label.textContent = 'Opciones:';
+          contenedor.appendChild(label);
+          for (let i = 1; i <= 3; i++) {
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.placeholder = `Opción ${i}`;
+            input.classList.add('opcion-multiple');
+            input.style.display = 'block';
+            input.style.marginTop = '5px';
+            contenedor.appendChild(input);
+          }
+        }
+      }
+  </script>
+</body>
+</html>

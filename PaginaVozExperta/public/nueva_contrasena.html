@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Establecer nueva contraseña</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="login-container">
+    <h2>Establecer nueva contraseña</h2>
+    <form id="reset-form">
+      <label for="newPassword">Nueva contraseña</label>
+      <input type="password" id="newPassword" required />
+      <button type="submit">Restablecer contraseña</button>
+    </form>
+    <div id="message" class="register-link"></div>
+    <div class="register-link" style="margin-top: 1.5rem;">
+      <a href="index.html">Volver al inicio de sesión</a>
+    </div>
+  </div>
+
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token');
+
+    document.getElementById('reset-form').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      const newPassword = document.getElementById('newPassword').value;
+
+      const res = await fetch('/restablecer-contrasena', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, nuevaContrasena: newPassword })
+      });
+
+      const data = await res.json();
+      const messageDiv = document.getElementById('message');
+
+      if (res.ok) {
+        messageDiv.textContent = data.mensaje;
+        messageDiv.style.color = 'green';
+      } else {
+        messageDiv.textContent = data.mensaje;
+        messageDiv.style.color = 'red';
+      }
+    });
+  </script>
+</body>
+</html>
