@@ -1,7 +1,7 @@
 require('dotenv').config();
 
 const express = require('express');
-const { Client } = require('pg');
+const { Pool } = require('pg');
 const bodyParser = require('body-parser');
 const path = require('path');  // Para manejar rutas de archivos
 
@@ -29,16 +29,11 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(bodyParser.json());
 
 // Conexión a la base de datos PostgreSQL
-const client = new Client({
-    user: 'tiare',
-    host: 'localhost',
-    database: 'evaluacion',
-    password: 'tiare',
-    port: 5432,
+const isProd = process.env.NODE_ENV === 'production';
+const client = new Pool({
+  connectionString: process.env.DATABASE_URL || 'postgres://tiare:tiare@localhost:5432/evaluacion',
+  ssl: isProd ? { rejectUnauthorized: false } : false
 });
-
-client.connect();
-
 // Ruta para verificar el login
 app.post('/verificar-login', async (req, res) => {
     const { correo, contrasena } = req.body;
@@ -875,6 +870,8 @@ app.post('/restablecer-contrasena', async (req, res) => {
     res.status(500).json({ exito: false, mensaje: 'Error interno.' });
   }
 });
+
+
 //Endpoint para ejecutar evaluación, enviar correos y guardar los promedios en la base de datos
 app.post('/ejecutar-evaluacion', async (req, res) => {
   //la fecha de cierre es igual o menor a la fecha actual, se puede modificar a solo que sea menor
@@ -1069,6 +1066,6 @@ app.post('/mensaje-strike', async (req, res) => {
 
 // Iniciar el servidor
 
-app.listen(port, () => {
-    console.log(`Servidor corriendo en http://localhost:${port}`);
+app.listen(port, '0.0.0.0', () => {
+  console.log(`Servidor corriendo en puerto ${port}`);
 });
