@@ -114,10 +114,12 @@ CREATE TABLE comentario_anonimo (
 
 insert into tipo_usuario values (1, 'administrador');
 insert into tipo_usuario values (2, 'usuario');
-insert into usuario values (1,'Tiare','Robles','trb@ier.unam.mx','$2b$10$K0QH1XDu0a4W0kYOBLvto.DT0O.7Ry6.xm/q68xf5R8DmnaPeBPa.',1);
-insert into usuario values (2,'Enrique','Olguin','enriraul.rdz@gmail.com','$2b$10$sjnXzm0UfoTX7HubmaJpIesmZ/nNwUwqE5q8ql8R1h7Yl2Ses3MMu',1);
+insert into usuario values (1,'Admin','root','vozexpertadm@gmail.com','$2b$10$NU80HsgxYQo/ZIDoOyu/A.xKitP5uld5mmX5PiibbtZQzr6wMUfCW',1);
+insert into usuario values (2,'Tiare','Robles','trb@ier.unam.mx','$2b$10$K0QH1XDu0a4W0kYOBLvto.DT0O.7Ry6.xm/q68xf5R8DmnaPeBPa.',1);
+insert into usuario values (3,'Enrique','Olguin','enriraul.rdz@gmail.com','$2b$10$sjnXzm0UfoTX7HubmaJpIesmZ/nNwUwqE5q8ql8R1h7Yl2Ses3MMu',1);
 
 
 
 COMMIT;
+
 
