@@ -1,26 +1,7 @@
+
 {
-  "name": "pagina-voz-experta",
-  "version": "1.0.0",
-  "main": "mini.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node mini.js",
-    "build": "echo \"no build\"",
-    "migrate:sql": "psql \"$DATABASE_URL\" -f base_vozexperta.sql"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "bcrypt": "^6.0.0",
-    "body-parser": "^1.20.3",
-    "dotenv": "^17.2.1",
-    "express": "^4.21.2",
-    "nodemailer": "^7.0.5",
-    "pg": "^8.13.1"
-  },
-  "description": "",
-  "engines": {
-    "node": ">=18"
+    "build": "echo \"no build\""
   }
 }
