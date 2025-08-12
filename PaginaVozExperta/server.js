@@ -26,8 +26,6 @@ app.use((req, _res, next) => {
   console.log('REQ', req.method, req.url);
   next();
 });
-app.get('/ping', (_req, res) => res.send('pong'));
-app.get('/', (_req, res) => res.send('OK'));
 
 
 // Middleware para servir archivos estáticos (como HTML, JS, CSS)
@@ -42,6 +40,19 @@ const client = new Pool({
   connectionString: process.env.DATABASE_URL || 'postgres://tiare:tiare@localhost:5432/evaluacion',
   ssl: isProd ? { rejectUnauthorized: false } : false
 });
+
+//rutas de prueba
+app.get('/ping', (_req, res) => res.send('pong'));
+app.get('/health', async (_req, res) => {
+  try {
+    const { rows } = await pool.query('SELECT NOW()');
+    res.json({ ok: true, now: rows[0].now });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+app.get('/', (_req, res) => res.send('OK'));
+
 // Ruta para verificar el login
 app.post('/verificar-login', async (req, res) => {
     const { correo, contrasena } = req.body;
