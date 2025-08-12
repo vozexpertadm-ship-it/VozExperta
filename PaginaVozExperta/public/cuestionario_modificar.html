@@ -43,7 +43,7 @@
     let cuestionarioActivoId = null;
     // Cargar cuestionarios al inicio
     document.addEventListener('DOMContentLoaded', () => {
-      fetch('http://localhost:3000/cuestionarios-activos')
+      fetch('/cuestionarios-activos')
         .then(response => response.json())
         .then(data => {
           const tableBody = document.getElementById('cuestionarioTable');
@@ -63,7 +63,7 @@
     // Cargar detalles de un cuestionario
   function loadcuestionarioDetails(cuestionarioId) {
     cuestionarioActivoId = cuestionarioId;
-    fetch(`http://localhost:3000/cuestionarios/${cuestionarioId}`)
+    fetch(`/cuestionarios/${cuestionarioId}`)
     .then(res => res.json())
     .then(data => {
       const detalles = document.getElementById('cuestionarioDetails');
@@ -88,7 +88,7 @@
 }
   function expandirModificacion(cuestionarioId) {
       document.getElementById('info-basica-cuestionario').style.display = 'none';
-      fetch(`http://localhost:3000/cuestionarios/${cuestionarioId}`)
+      fetch(`/cuestionarios/${cuestionarioId}`)
         .then(res => res.json())
         .then(data => {
           const container = document.getElementById('modificacion-completa');
@@ -101,7 +101,7 @@
          <div id="preguntas-container"></div>
         `;
 
-        fetch('http://localhost:3000/get-cuestionarios', {
+        fetch('/get-cuestionarios', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ idCuestionario: cuestionarioId })
@@ -135,7 +135,7 @@
             container.appendChild(div);
 
             if (tipo === 'multiple') {
-              fetch('http://localhost:3000/get-opcionesM', {
+              fetch('/get-opcionesM', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ idPregunta: preguntaId })
@@ -199,7 +199,7 @@
 //funcion para eliminar cuestionarios
   function confirmarEliminarCuestionario(id){
     if (confirm("¿Estás seguro de que quieres eliminar este cuestionario?")){
-      fetch(`http://localhost:3000/cuestionarios/${id}`, {
+      fetch(`/cuestionarios/${id}`, {
       method: 'DELETE'
     })
     .then(res => res.json())
@@ -232,7 +232,7 @@
       if (fechaApertura) body.fecha_apertura = fechaApertura;
       if (fechaCierre) body.fecha_cierre = fechaCierre;
                 
-      fetch(`http://localhost:3000/cuestionarios/${idCuestionario}/fechas`, {
+      fetch(`/cuestionarios/${idCuestionario}/fechas`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body)
@@ -260,7 +260,7 @@
       const body = tipoOriginal === 'texto'
       ? { pregunta: texto }
       : { pregunta: texto, tipo: nuevoTipo };
-      fetch(`http://localhost:3000${endpoint}`, {
+      fetch(endpoint, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body)
@@ -301,7 +301,7 @@
           opciones.push({ id: idOpcion, texto });
         }
       });
-      fetch('http://localhost:3000/opciones', {
+      fetch('/opciones', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ opciones })
@@ -327,7 +327,7 @@
        alert("La opción no puede estar vacía.");
         return;
       }
-      fetch('http://localhost:3000/opcion', {
+      fetch('/opcion', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ idPregunta, texto })
@@ -350,7 +350,7 @@
       const confirmar = confirm("¿Eliminar esta opción?");
       if (!confirmar) return;
       
-      fetch(`http://localhost:3000/opcion/${idOpcion}`, {
+      fetch(`/opcion/${idOpcion}`, {
         method: 'DELETE'
       })
       .then(res => res.json())
@@ -373,7 +373,7 @@
       
       if (!confirmacion) return;
       const endpoint = tipo === 'texto' ? `/pregunta-cuali/${id}` : `/pregunta-cuant/${id}`;
-      fetch(`http://localhost:3000${endpoint}`, {
+      fetch(endpoint, {
         method: 'DELETE'
       })
       .then(res => res.json())
@@ -413,7 +413,7 @@
           return;
         }
       }
-      fetch('http://localhost:3000/preguntas', {
+      fetch('/preguntas', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -461,4 +461,5 @@
       }
   </script>
 </body>
+
 </html>
