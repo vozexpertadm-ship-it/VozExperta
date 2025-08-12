@@ -48,7 +48,7 @@
         const idUsuarioLogueado = localStorage.getItem('id_usuario');
         // console.log(idUsuarioLogueado);
 
-        fetch('http://localhost:3000/get-idcuestionarios', {
+        fetch('/get-idcuestionarios', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -76,7 +76,7 @@
         .catch(error => console.error('Error al cargar los cuestionarios disponibles:', error));
 
         function loadQuestionnaireDetails(questId) {
-            fetch('http://localhost:3000/verificar-respuesta', {
+            fetch('/verificar-respuesta', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -93,7 +93,7 @@
             
             cuestionarioCargado = questId;
 
-            fetch('http://localhost:3000/get-cuestionarios', {
+            fetch('/get-cuestionarios', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ idCuestionario: questId })
@@ -128,7 +128,7 @@
                             break;
                         }
                         case 'multiple': {
-                            fetch('http://localhost:3000/get-opcionesM', {
+                            fetch('/get-opcionesM', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({ idPregunta: pregunta.id_pregunta })
@@ -182,7 +182,7 @@
 
                             const tbody = document.createElement('tbody');
 
-                            fetch('http://localhost:3000/usuarios-matrix')
+                            fetch('/usuarios-matrix')
                                 .then(response => response.json())
                                 .then(data => {
                                     data.forEach(user => {
@@ -297,7 +297,7 @@
         //     respuestas: respuestasFiltradas
         // });
 
-        fetch('http://localhost:3000/guardar-respuestas', {
+        fetch('/guardar-respuestas', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -342,3 +342,4 @@
 -->
 </body>
 </html>
+
