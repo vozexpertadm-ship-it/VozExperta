@@ -37,7 +37,7 @@ app.use(bodyParser.json());
 // Conexión a la base de datos PostgreSQL
 const isProd = process.env.NODE_ENV === 'production';
 const client = new Pool({
-  connectionString: process.env.DATABASE_URL || 'postgres://tiare:tiare@localhost:5432/evaluacion',
+  connectionString: process.env.DATABASE_URL,
   ssl: isProd ? { rejectUnauthorized: false } : false
 });
 
@@ -45,7 +45,7 @@ const client = new Pool({
 app.get('/ping', (_req, res) => res.send('pong'));
 app.get('/health', async (_req, res) => {
   try {
-    const { rows } = await pool.query('SELECT NOW()');
+    const { rows } = await client.query('SELECT NOW()');
     res.json({ ok: true, now: rows[0].now });
   } catch (e) {
     res.status(500).json({ ok: false, error: e.message });
