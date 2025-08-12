@@ -12,7 +12,7 @@ const port = process.env.PORT || 3000;
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
-
+const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
 // Configura tu transportador de correo
 const transporter = nodemailer.createTransport({
   service: 'gmail', // o el servicio que uses
@@ -21,6 +21,7 @@ const transporter = nodemailer.createTransport({
     pass: process.env.EMAIL_PASS
   }
 });
+
 //cosas de prueba
 app.use((req, _res, next) => {
   console.log('REQ', req.method, req.url);
@@ -829,7 +830,7 @@ app.post('/solicitar-restablecimiento', async (req, res) => {
       [correo, token, fecha_expiracion]
     );
 
-    const enlace = `http://localhost:3000/nueva_contrasena.html?token=${token}`;
+    const enlace = `${baseUrl}/nueva_contrasena.html?token=${token}`;
 
     await transporter.sendMail({
       from: process.env.EMAIL_USER,
@@ -965,7 +966,7 @@ app.post('/ejecutar-evaluacion', async (req, res) => {
             <ul>
               ${respuestas.rows.map(r => `<li>${r.pregunta}: ${r.promedio_pregunta}</li>`).join('')}
             </ul>
-            <p>Si deseas enviar comentarios para mejorar, hazlo desde este <a href="http://localhost:3000/comentario_anonimo.html">formulario anónimo</a>.</p>
+            <p>Si deseas enviar comentarios para mejorar, hazlo desde este <a href="${baseUrl}/comentario_anonimo.html">formulario anónimo</a>.</p>
           `;
           await client.query(`UPDATE usuario SET strike = strike + 1 WHERE id_usuario = $1`,[id_objetivo]);
           
