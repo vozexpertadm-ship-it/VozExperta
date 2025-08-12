@@ -42,7 +42,7 @@
     document.getElementById("button-ejecutar").style.display = 'none';
     let id_Cuestionario=null;
   
-    fetch('http://localhost:3000/cuestionarios-todos')
+    fetch('/cuestionarios-todos')
       .then(res => res.json())
       .then(data => {
         const table = document.getElementById('cuestionarios-table');
@@ -66,7 +66,7 @@
       });
 
     function cargarPreguntas(id) {
-      fetch('http://localhost:3000/get-cuestionarios', {
+      fetch('/get-cuestionarios', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ idCuestionario: id })
@@ -88,7 +88,7 @@
     // Ejecutar evaluación
 
   function MensajeStrike() {
-    fetch('http://localhost:3000/mensaje-strike', {
+    fetch('/mensaje-strike', {
       method: 'POST'
     })
     .then(res => {
@@ -114,7 +114,7 @@
     if (!confirm("¿Estás seguro de que deseas ejecutar la evaluación ahora?")) return;
     console.log("Entra a ejecutar evaluacion");
 
-    fetch('http://localhost:3000/verificar-evaluacion', {
+    fetch('/verificar-evaluacion', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id_cuestionario: id_Cuestionario})
@@ -130,7 +130,7 @@
       btn.disabled = true;
       btn.textContent = "Evaluando...";
 
-      fetch('http://localhost:3000/ejecutar-evaluacion', {
+      fetch('/ejecutar-evaluacion', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id_cuestionario: id_Cuestionario })
