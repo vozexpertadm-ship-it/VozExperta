@@ -42,7 +42,7 @@ const client = new Pool({
 });
 
 //rutas de prueba
-app.get('/ping', (_req, res) => res.send('pong'));
+app.get('/ping', (_req, res) => res.send('pong')); // sin DB
 app.get('/health', async (_req, res) => {
   try {
     const { rows } = await client.query('SELECT NOW()');
