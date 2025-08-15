@@ -786,14 +786,16 @@ app.post('/guardar-respuestas', async (req, res) => {
           console.warn('Respuesta cuantitativa no es un número válido:', respuesta);
           continue;
         }
-
+        
         console.log('Insertando cuantitativa:', { id_usuario, id_pregunta, respuesta: respuestaInt, id_usuarioevaluado: id_usuario_objetivo || null });
+        // Para no-matrix, usamos 0 en lugar de NULL
+        const idEvaluado = (tipo === 'matrix') ? (id_usuario_objetivo ?? 0) : 0;
         await client.query(`
           INSERT INTO resultado_cuant (id_usuario, id_pregunta, respuesta, id_usuarioevaluado)
           VALUES ($1, $2, $3, $4)
           ON CONFLICT (id_usuario, id_pregunta, id_usuarioevaluado)
           DO UPDATE SET respuesta = EXCLUDED.respuesta;
-        `, [id_usuario, id_pregunta, respuestaInt, id_usuario_objetivo || null]);
+        `, [id_usuario, id_pregunta, respuestaInt, idEvaluado]);
       }
     }
 
@@ -970,14 +972,14 @@ app.post('/ejecutar-evaluacion', async (req, res) => {
           `;
           await client.query(`UPDATE usuario SET strike = strike + 1 WHERE id_usuario = $1`,[id_objetivo]);
           
-        } else if (valores.some(v => v < umbral_aceptacion)) {
+        } /*else if (valores.some(v => v < umbral_aceptacion)) {
           const debiles = respuestas.rows.filter(r => r.respuesta < umbral_aceptacion);
           mensaje = `
             <p>Gracias por tu labor en el consejo.</p>
             <p>Algunos aspectos pueden mejorar según la percepción de tus colegas:</p>
             <ul>${debiles.map(d => `<li>${d.pregunta}</li>`).join('')}</ul>
-          `;
-        } else {
+          `; }*/
+        else {
           mensaje = `<p>Gracias por tu colaboración en el Consejo. Sabemos que juntas somos extraordinarias.</p>`;
         }
 
